@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Importation Excel{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Importation Excel</h1>
+        <table id="excelDataTable" class="table">
+            <thead>
+            <tr>
+                <th>Compte Affaire</th>
+                <th>Compte Evenement</th>
+                <th>Compte Dernier Evenement</th>
+                <th>Numero Fiche</th>
+                <th>Libelle Civilite</th>
+                <th>Proprietaire Vehicule</th>
+                <th>Nom</th>
+                <th>Prenom</th>
+                <th>Numero Nom Voie</th>
+                <th>Complement Adresse1</th>
+                <th>Code Postal</th>
+                <th>Ville</th>
+                <th>Telephone Domicile</th>
+                <th>Telephone Portable</th>
+                <th>Telephone Job</th>
+                <th>Email</th>
+                <th>Date Mise Circulation</th>
+                <th>Date Achat</th>
+                <th>Date Dernier Evenement</th>
+                <th>Libelle Marque</th>
+                <th>Libelle Modele</th>
+                <th>Version</th>
+                <th>VIN</th>
+                <th>Immatriculation</th>
+                <th>Type Prospect</th>
+                <th>Kilometrage</th>
+                <th>Libelle Energie</th>
+                <th>Vendeur VN</th>
+                <th>Vendeur VO</th>
+                <th>Commentaire Facturation</th>
+                <th>Type VN/VO</th>
+                <th>Numero Dossier VN/VO</th>
+                <th>Intermediaire Vente VN</th>
+                <th>Date Evenement</th>
+                <th>Origine Evenement</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/v/bs4/dt-1.11.5/datatables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#excelDataTable').DataTable({
+                data: [],
+                columns: [
+                    { data: 'compteAffaire' },
+                    { data: 'compteEvenement' },
+                    { data: 'compteDernierEvenement' },
+                    { data: 'numeroFiche' },
+                    { data: 'libelleCivilite' },
+                    { data: 'proprietaireVehicule' },
+                    { data: 'nom' },
+                    { data: 'prenom' },
+                    { data: 'numeroNomVoie' },
+                    { data: 'complementAdresse1' },
+                    { data: 'codePostal' },
+                    { data: 'ville' },
+                    { data: 'telephoneDomicile' },
+                    { data: 'telephonePortable' },
+                    { data: 'telephoneJob' },
+                    { data: 'email' },
+                    {
+                        data: 'dateMiseCirculation',
+                        render: function(data) {
+                            if (data && data.date) {
+                                return new Date(data.date).toLocaleDateString();
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        data: 'dateAchat',
+                        render: function(data) {
+                            if (data && data.date) {
+                                return new Date(data.date).toLocaleDateString();
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    {
+                        data: 'dateDernierEvenement',
+                        render: function(data) {
+                            if (data && data.date) {
+                                return new Date(data.date).toLocaleDateString();
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { data: 'libelleMarque' },
+                    { data: 'libelleModele' },
+                    { data: 'version' },
+                    { data: 'vin' },
+                    { data: 'immatriculation' },
+                    { data: 'typeProspect' },
+                    { data: 'kilometrage' },
+                    { data: 'libelleEnergie' },
+                    { data: 'vendeurVN' },
+                    { data: 'vendeurVO' },
+                    { data: 'commentaireFacturation' },
+                    { data: 'typeVNVO' },
+                    { data: 'numeroDossierVNVO' },
+                    { data: 'intermediaireVenteVN' },
+                    {
+                        data: 'dateEvenement',
+                        render: function(data) {
+                            if (data && data.date) {
+                                return new Date(data.date).toLocaleDateString();
+                            } else {
+                                return '';
+                            }
+                        }
+                    },
+                    { data: 'origineEvenement' },
+                    {
+                        data: null,
+                        render: function(data) {
+                            return '<button class="btn btn-primary btn-edit" data-id="' + data.id + '">Modifier</button> ' +
+                                '<button class="btn btn-danger btn-delete" data-id="' + data.id + '">Supprimer</button>';
+                        }
+                    }
+                ]
+            });
+
+            $('#excelDataTable thead th').each(function () {
+                var title = $(this).text();
+                $(this).html('<input type="text" placeholder="Rechercher ' + title + '" />');
+            });
+
+            var table = $('#excelDataTable').DataTable();
+
+            table.columns().every(function () {
+                var that = this;
+
+                $('input', this.header()).on('keyup change', function () {
+                    if (that.search() !== this.value) {
+                        that
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+
+            $('#excelDataTable tbody').on('click', '.btn-delete', function () {
+                var id = $(this).data('id');
+                var row = $(this).closest('tr');
+                if (confirm("Êtes-vous sûr de vouloir supprimer cet enregistrement ?")) {
+                    $.ajax({
+                        url: '/excels/' + id,
+                        type: 'DELETE',
+                        success: function () {
+                            alert("Enregistrement supprimé avec succès !");
+                            table.row(row).remove().draw();
+                        },
+                        error: function () {
+                            alert("Une erreur s'est produite lors de la suppression.");
+                        }
+                    });
+                }
+            });
+
+            $.ajax({
+                url: '{{ path('excels_list') }}',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    table.clear().rows.add(data).draw();
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+            $('#excelDataTable tbody').on('click', '.btn-edit', function () {
+                var id = $(this).data('id');
+                window.location.href = '/excels/' + id + '/edit';
+            });
+        });
+    </script>
+{% endblock %}
